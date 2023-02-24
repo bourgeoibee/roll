@@ -25,7 +25,7 @@ fn main() {
 }
 
 // Parses command line args into groups of dice in form (ammount of dice, number of sides)
-// Matches empty input ([]) to 1 d20
+// Matches empty input to 1 d20
 fn input_to_dice(args: &[String]) -> Option<Vec<(u32, u32)>> {
     let mut dice: Vec<(u32, u32)> = vec![];
 
