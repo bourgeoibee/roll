@@ -1,3 +1,7 @@
+use std::io::prelude::*;
+use std::io::stdout;
+use std::io::BufWriter;
+
 use rand::prelude::*;
 
 fn main() {
@@ -13,15 +17,21 @@ fn main() {
     };
 
     let mut rng = thread_rng();
+    let stdout = stdout();
+    let mut buffer = BufWriter::new(stdout);
 
     for (times, die) in dice {
         assert!(die != 0, "Parser did not prevent zero-sided die");
 
         for _ in 0..times {
             let roll = rng.gen_range(1..=die);
-            println!("d{die}: {roll}");
+            buffer
+                .write_fmt(format_args!("d{die}: {roll}\n"))
+                .expect("Write failed");
         }
     }
+
+    buffer.flush().expect("Flush failed")
 }
 
 // Parses command line args into groups of dice in form (ammount of dice, number of sides)
