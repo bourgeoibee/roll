@@ -15,9 +15,9 @@ fn main() {
     let mut rng = thread_rng();
 
     for (times, die) in dice {
-        for _ in 0..times {
-            assert!(die != 0, "Parser did not prevent zero-sided die");
+        assert!(die != 0, "Parser did not prevent zero-sided die");
 
+        for _ in 0..times {
             let roll = rng.gen_range(1..=die);
             println!("d{die}: {roll}");
         }
