@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+#[derive(Clone)]
 pub struct DieGroup {
     pub amount: u32,
     pub sides: u32,
@@ -17,15 +18,20 @@ pub enum ParseError {
     Dice,
 }
 
+pub enum Roll {
+    Single(DieGroup),
+    Multiple(Vec<DieGroup>),
+}
+
 // Parse cli args into the enabled flags and dice groups (# dice, # sides)
-pub fn parsed_args(args: Vec<String>) -> Result<(HashSet<Flag>, Vec<DieGroup>), ParseError> {
-    let (flags, dice): (Vec<String>, Vec<String>) =
+pub fn parsed_args(args: Vec<String>) -> Result<(HashSet<Flag>, Roll), ParseError> {
+    let (flags, rolls): (Vec<String>, Vec<String>) =
         args.into_iter().partition(|a| (*a).starts_with('-'));
 
     let flags = parsed_flags(flags)?;
-    let dice = parsed_dice(dice)?;
+    let rolls = parsed_dice(rolls)?;
 
-    Ok((flags, dice))
+    Ok((flags, rolls))
 }
 
 fn parsed_flags(string_flags: Vec<String>) -> Result<HashSet<Flag>, ParseError> {
@@ -46,16 +52,15 @@ fn parsed_flags(string_flags: Vec<String>) -> Result<HashSet<Flag>, ParseError> 
 
 // Parses command line args into groups of dice in form (amount of dice, number of sides)
 // Defaults to one d20 if no args were passed in
-fn parsed_dice(string_dice: Vec<String>) -> Result<Vec<DieGroup>, ParseError> {
+fn parsed_dice(string_dice: Vec<String>) -> Result<Roll, ParseError> {
     if string_dice.is_empty() {
-        return Ok(vec![DieGroup {
+        return Ok(Roll::Single(DieGroup {
             amount: 1,
             sides: 20,
-        }]);
+        }));
     }
 
     let mut dice = vec![];
-
     for die_group in string_dice {
         let (amount, sides) = die_group.split_once('d').ok_or(ParseError::Dice)?;
 
@@ -74,5 +79,9 @@ fn parsed_dice(string_dice: Vec<String>) -> Result<Vec<DieGroup>, ParseError> {
         dice.push(DieGroup { amount, sides })
     }
 
-    Ok(dice)
+    if dice.len() == 1 {
+        return Ok(Roll::Single(dice[0].clone()));
+    }
+
+    Ok(Roll::Multiple(dice))
 }

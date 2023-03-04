@@ -1,3 +1,5 @@
+use roll::{Flag, Roll};
+
 use std::io::prelude::*;
 use std::io::stdout;
 use std::io::BufWriter;
@@ -16,55 +18,55 @@ fn main() -> Result<(), roll::ParseError> {
     let mut rng = thread_rng();
     let stdout = stdout();
     let mut buffer = BufWriter::new(stdout);
+    let mut total: u32 = 0;
 
-    if dice.len() == 1 {
-        let mut total: u32 = 0;
-
-        for _ in 0..dice[0].amount {
-            let roll = rng.gen_range(1..=dice[0].sides);
-
-            buffer
-                .write_fmt(format_args!("{roll}\n"))
-                .expect("Write failed");
-            total += roll;
-        }
-
-        if flags.contains(&roll::Flag::Total) {
-            buffer
-                .write_fmt(format_args!("total: {total}\n"))
-                .expect("Write failed");
-        }
-    } else {
-        let mut total: u32 = 0;
-
-        for die_group in dice {
-            let mut subtotal: u32 = 0;
-
-            buffer
-                .write_fmt(format_args!("d{}:\n", die_group.sides))
-                .expect("Write failed");
-
+    match dice {
+        Roll::Single(die_group) => {
             for _ in 0..die_group.amount {
                 let roll = rng.gen_range(1..=die_group.sides);
 
                 buffer
-                    .write_fmt(format_args!(" {roll}\n"))
+                    .write_fmt(format_args!("{roll}\n"))
                     .expect("Write failed");
-                subtotal += roll
+                total += roll;
             }
 
-            if flags.contains(&roll::Flag::Subtotals) {
+            if flags.contains(&Flag::Total) {
                 buffer
-                    .write_fmt(format_args!("d{} subtotal: {subtotal}\n", die_group.sides))
+                    .write_fmt(format_args!("total: {total}\n"))
                     .expect("Write failed");
             }
-            total += subtotal;
         }
+        Roll::Multiple(die_groups) => {
+            for die_group in die_groups {
+                let mut subtotal: u32 = 0;
 
-        if flags.contains(&roll::Flag::Total) {
-            buffer
-                .write_fmt(format_args!("total: {total}\n"))
-                .expect("Write failed");
+                buffer
+                    .write_fmt(format_args!("d{}:\n", die_group.sides))
+                    .expect("Write failed");
+
+                for _ in 0..die_group.amount {
+                    let roll = rng.gen_range(1..=die_group.sides);
+
+                    buffer
+                        .write_fmt(format_args!(" {roll}\n"))
+                        .expect("Write failed");
+                    subtotal += roll
+                }
+
+                if flags.contains(&Flag::Subtotals) {
+                    buffer
+                        .write_fmt(format_args!("subtotal: {subtotal}\n"))
+                        .expect("Write failed");
+                }
+                total += subtotal;
+            }
+
+            if flags.contains(&Flag::Total) {
+                buffer
+                    .write_fmt(format_args!("total: {total}\n"))
+                    .expect("Write failed");
+            }
         }
     }
 
