@@ -35,16 +35,34 @@ pub fn parsed_args(args: Vec<String>) -> Result<(HashSet<Flag>, Roll), ParseErro
 }
 
 fn parsed_flags(string_flags: Vec<String>) -> Result<HashSet<Flag>, ParseError> {
+    let (long_options, short_options): (Vec<String>, Vec<String>) = string_flags
+        .into_iter()
+        .partition(|f| (*f).starts_with("--"));
+
     let mut flags = HashSet::new();
 
-    for flag in string_flags {
-        let flag = match flag.as_str() {
-            "--total" | "-t" => Flag::Total,
-            "--subtotals" | "-s" => Flag::Subtotals,
+    for opt in long_options {
+        let flag = match opt.as_str() {
+            "--subtotals" => Flag::Subtotals,
+            "--total" => Flag::Total,
             _ => return Err(ParseError::Flag),
         };
 
         flags.insert(flag);
+    }
+
+    for opt_group in short_options {
+        let opts: Vec<char> = opt_group.chars().skip(1).collect();
+
+        for c in opts {
+            let flag = match c {
+                's' => Flag::Subtotals,
+                't' => Flag::Total,
+                _ => return Err(ParseError::Flag),
+            };
+
+            flags.insert(flag);
+        }
     }
 
     Ok(flags)
