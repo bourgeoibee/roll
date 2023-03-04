@@ -10,6 +10,7 @@ pub struct DieGroup {
 pub enum Flag {
     Total,
     Subtotals,
+    Help,
 }
 
 #[derive(Debug)]
@@ -45,6 +46,7 @@ fn parsed_flags(string_flags: Vec<String>) -> Result<HashSet<Flag>, ParseError> 
         let flag = match opt.as_str() {
             "--subtotals" => Flag::Subtotals,
             "--total" => Flag::Total,
+            "--help" => Flag::Help,
             _ => return Err(ParseError::Flag),
         };
 
@@ -58,6 +60,7 @@ fn parsed_flags(string_flags: Vec<String>) -> Result<HashSet<Flag>, ParseError> 
             let flag = match c {
                 's' => Flag::Subtotals,
                 't' => Flag::Total,
+                'h' => Flag::Help,
                 _ => return Err(ParseError::Flag),
             };
 

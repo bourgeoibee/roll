@@ -7,13 +7,31 @@ use std::io::BufWriter;
 use rand::prelude::*;
 
 fn main() -> Result<(), roll::ParseError> {
+    const USAGE: &str = "Usage: roll [OPTIONS]... [DICE]...
+DICE = MdN -> roll a dN M times
+Options:
+    -h | --help      Print this text
+    -s | --subtotals Print subtotals of each roll group
+    -t | --total     Print total of all rolls";
+
     let raw_args: Vec<String> = std::env::args().collect();
     let args = raw_args
         .get(1..)
         .expect("1.. is never out of bounds")
         .to_vec();
 
-    let (flags, dice) = roll::parsed_args(args)?;
+    let (flags, dice) = match roll::parsed_args(args) {
+        Ok(res) => res,
+        Err(_) => {
+            eprintln!("{USAGE}");
+            return Ok(());
+        }
+    };
+
+    if flags.contains(&Flag::Help) {
+        println!("{USAGE}");
+        return Ok(());
+    }
 
     let mut rng = thread_rng();
     let stdout = stdout();
