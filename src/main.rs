@@ -1,4 +1,4 @@
-use roll::{Flag, Roll};
+use roll::{Flag, Rolls};
 
 use std::io::prelude::*;
 use std::io::stdout;
@@ -20,7 +20,7 @@ Options:
         .expect("1.. is never out of bounds")
         .to_vec();
 
-    let (flags, dice) = match roll::parsed_args(args) {
+    let (flags, rolls) = match roll::parsed_args(args) {
         Ok(res) => res,
         Err(_) => {
             eprintln!("{USAGE}");
@@ -38,8 +38,8 @@ Options:
     let mut buffer = BufWriter::new(stdout);
     let mut total: u32 = 0;
 
-    match dice {
-        Roll::Single(die_group) => {
+    match rolls {
+        Rolls::Single(die_group) => {
             for _ in 0..die_group.amount {
                 let roll = rng.gen_range(1..=die_group.sides);
 
@@ -55,7 +55,7 @@ Options:
                     .expect("Write failed");
             }
         }
-        Roll::Multiple(die_groups) => {
+        Rolls::Multiple(die_groups) => {
             for die_group in die_groups {
                 let mut subtotal: u32 = 0;
 
